@@ -221,3 +221,46 @@ border-radius: 0 0 15px 15px !important;
 	margin-bottom: 15px !important;
 }
 }
+
+/* Typing indicator */
+.typing-indicator {
+	display: flex;
+	align-items: center;
+	margin-top: auto;
+	margin-bottom: auto;
+	margin-left: 10px;
+	border-radius: 25px;
+	background-color: rgb(82, 172, 255);
+	padding: 10px 15px;
+	position: relative;
+}
+
+.typing-indicator span {
+	height: 8px;
+	width: 8px;
+	background-color: rgba(255, 255, 255, 0.7);
+	border-radius: 50%;
+	display: inline-block;
+	margin-right: 5px;
+	animation: typing 1.4s infinite;
+}
+
+.typing-indicator span:nth-child(2) {
+	animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+	animation-delay: 0.4s;
+	margin-right: 0;
+}
+
+@keyframes typing {
+	0%, 60%, 100% {
+		transform: translateY(0);
+		opacity: 0.7;
+	}
+	30% {
+		transform: translateY(-10px);
+		opacity: 1;
+	}
+}

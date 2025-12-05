@@ -51,16 +51,31 @@
 		<script>
 			$(document).ready(function() {
 				$("#messageArea").on("submit", function(event) {
+					event.preventDefault();
+					
 					const date = new Date();
 					const hour = date.getHours();
 					const minute = date.getMinutes();
 					const str_time = hour+":"+minute;
 					var rawText = $("#text").val();
 
+					// Don't send empty messages
+					if (!rawText.trim()) return;
+
 					var userHtml = '<div class="d-flex justify-content-end mb-4"><div class="msg_cotainer_send">' + rawText + '<span class="msg_time_send">'+ str_time + '</span></div><div class="img_cont_msg"><img src="https://i.ibb.co/d5b84Xw/Untitled-design.png" class="rounded-circle user_img_msg"></div></div>';
 					
 					$("#text").val("");
 					$("#messageFormeight").append(userHtml);
+					
+					// Scroll to bottom
+					$("#messageFormeight").scrollTop($("#messageFormeight")[0].scrollHeight);
+
+					// Show typing indicator
+					var typingHtml = '<div class="d-flex justify-content-start mb-4" id="typingIndicator"><div class="img_cont_msg"><img src="https://cdn-icons-png.flaticon.com/512/387/387569.png" class="rounded-circle user_img_msg"></div><div class="typing-indicator"><span></span><span></span><span></span></div></div>';
+					$("#messageFormeight").append(typingHtml);
+					
+					// Scroll to bottom again to show typing indicator
+					$("#messageFormeight").scrollTop($("#messageFormeight")[0].scrollHeight);
 
 					$.ajax({
 						data: {
@@ -69,11 +84,25 @@
 						type: "POST",
 						url: "/get",
 					}).done(function(data) {
+						// Remove typing indicator
+						$("#typingIndicator").remove();
+						
 						var botResponse = data.response || data;
 						var botHtml = '<div class="d-flex justify-content-start mb-4"><div class="img_cont_msg"><img src="https://cdn-icons-png.flaticon.com/512/387/387569.png" class="rounded-circle user_img_msg"></div><div class="msg_cotainer">' + botResponse + '<span class="msg_time">' + str_time + '</span></div></div>';
 						$("#messageFormeight").append($.parseHTML(botHtml));
+						
+						// Scroll to bottom to show response
+						$("#messageFormeight").scrollTop($("#messageFormeight")[0].scrollHeight);
+					}).fail(function() {
+						// Remove typing indicator on error
+						$("#typingIndicator").remove();
+						
+						var errorHtml = '<div class="d-flex justify-content-start mb-4"><div class="img_cont_msg"><img src="https://cdn-icons-png.flaticon.com/512/387/387569.png" class="rounded-circle user_img_msg"></div><div class="msg_cotainer">Sorry, something went wrong. Please try again.<span class="msg_time">' + str_time + '</span></div></div>';
+						$("#messageFormeight").append($.parseHTML(errorHtml));
+						
+						// Scroll to bottom
+						$("#messageFormeight").scrollTop($("#messageFormeight")[0].scrollHeight);
 					});
-					event.preventDefault();
 				});
 			});
 		</script>

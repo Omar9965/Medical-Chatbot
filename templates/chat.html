@@ -1,17 +1,12 @@
-<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
-<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>Chatbot</title>
+		<title>Medical Chatbot</title>
 		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
 		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css')}}"/>
 	</head>
-	
 	
 	<body>
 		<div class="container-fluid h-100">
@@ -22,22 +17,40 @@
 							<div class="d-flex bd-highlight">
 								<div class="img_cont">
 									<img src="https://cdn-icons-png.flaticon.com/512/387/387569.png" class="rounded-circle user_img">
-									<!-- <img src="https://www.prdistribution.com/spirit/uploads/pressreleases/2019/newsreleases/d83341deb75c4c4f6b113f27b1e42cd8-chatbot-florence-already-helps-thousands-of-patients-to-remember-their-medication.png" class="rounded-circle user_img"> -->
 									<span class="online_icon"></span>
 								</div>
 								<div class="user_info">
 									<span>Medical Chatbot</span>
 									<p>Ask me anything!</p>
 								</div>
+								<div class="header_actions ml-auto">
+									<button class="action_btn" id="clearBtn" title="Clear Chat">
+										<i class="fas fa-trash"></i>
+									</button>
+									<button class="action_btn" id="exportBtn" title="Export Chat">
+										<i class="fas fa-download"></i>
+									</button>
+									<button class="action_btn" id="statsBtn" title="View Stats">
+										<i class="fas fa-chart-bar"></i>
+									</button>
+								</div>
 							</div>
 						</div>
 						<div id="messageFormeight" class="card-body msg_card_body">
-							
-							
+							<!-- Welcome message -->
+							<div class="d-flex justify-content-start mb-4">
+								<div class="img_cont_msg">
+									<img src="https://cdn-icons-png.flaticon.com/512/387/387569.png" class="rounded-circle user_img_msg">
+								</div>
+								<div class="msg_cotainer">
+									Hello! I'm your Medical Assistant. Ask me any health-related questions and I'll help you find answers from medical literature.
+									<span class="msg_time">Now</span>
+								</div>
+							</div>
 						</div>
 						<div class="card-footer">
 							<form id="messageArea" class="input-group">
-                                <input type="text" id="text" name="msg" placeholder="Type your message..." autocomplete="off" class="form-control type_msg" required/>
+                                <input type="text" id="text" name="msg" placeholder="Type your medical question..." autocomplete="off" class="form-control type_msg" required/>
 								<div class="input-group-append">
 									<button type="submit" id="send" class="input-group-text send_btn"><i class="fas fa-location-arrow"></i></button>
 								</div>
@@ -47,61 +60,161 @@
 				</div>
 			</div>
 		</div>
+
+		<!-- Stats Modal -->
+		<div class="modal fade" id="statsModal" tabindex="-1" role="dialog">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content stats-modal">
+					<div class="modal-header">
+						<h5 class="modal-title">Chat Statistics</h5>
+						<button type="button" class="close" data-dismiss="modal">
+							<span>&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<div class="stat-item">
+							<i class="fas fa-comments"></i>
+							<span>Total Conversations: <strong id="totalChats">0</strong></span>
+						</div>
+						<div class="stat-item">
+							<i class="fas fa-thumbs-up text-success"></i>
+							<span>Helpful Responses: <strong id="positiveCount">0</strong></span>
+						</div>
+						<div class="stat-item">
+							<i class="fas fa-thumbs-down text-danger"></i>
+							<span>Needs Improvement: <strong id="negativeCount">0</strong></span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
 		
+		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
 		<script>
 			$(document).ready(function() {
+				
+				// Handle message submission
 				$("#messageArea").on("submit", function(event) {
 					event.preventDefault();
 					
 					const date = new Date();
 					const hour = date.getHours();
 					const minute = date.getMinutes();
-					const str_time = hour+":"+minute;
+					const str_time = hour + ":" + (minute < 10 ? "0" + minute : minute);
 					var rawText = $("#text").val();
 
-					// Don't send empty messages
 					if (!rawText.trim()) return;
 
 					var userHtml = '<div class="d-flex justify-content-end mb-4"><div class="msg_cotainer_send">' + rawText + '<span class="msg_time_send">'+ str_time + '</span></div><div class="img_cont_msg"><img src="https://i.ibb.co/d5b84Xw/Untitled-design.png" class="rounded-circle user_img_msg"></div></div>';
 					
 					$("#text").val("");
 					$("#messageFormeight").append(userHtml);
-					
-					// Scroll to bottom
 					$("#messageFormeight").scrollTop($("#messageFormeight")[0].scrollHeight);
 
 					// Show typing indicator
 					var typingHtml = '<div class="d-flex justify-content-start mb-4" id="typingIndicator"><div class="img_cont_msg"><img src="https://cdn-icons-png.flaticon.com/512/387/387569.png" class="rounded-circle user_img_msg"></div><div class="typing-indicator"><span></span><span></span><span></span></div></div>';
 					$("#messageFormeight").append(typingHtml);
-					
-					// Scroll to bottom again to show typing indicator
 					$("#messageFormeight").scrollTop($("#messageFormeight")[0].scrollHeight);
 
 					$.ajax({
-						data: {
-							msg: rawText,	
-						},
+						data: { msg: rawText },
 						type: "POST",
 						url: "/get",
 					}).done(function(data) {
-						// Remove typing indicator
 						$("#typingIndicator").remove();
 						
 						var botResponse = data.response || data;
-						var botHtml = '<div class="d-flex justify-content-start mb-4"><div class="img_cont_msg"><img src="https://cdn-icons-png.flaticon.com/512/387/387569.png" class="rounded-circle user_img_msg"></div><div class="msg_cotainer">' + botResponse + '<span class="msg_time">' + str_time + '</span></div></div>';
+						var chatId = data.chat_id;
+						var sources = data.sources || [];
+						
+						// Build sources HTML
+						var sourcesHtml = '';
+						if (sources.length > 0) {
+							sourcesHtml = '<div class="sources"><i class="fas fa-book-medical"></i> Sources: ' + sources.join(', ') + '</div>';
+						}
+						
+						// Build feedback buttons
+						var feedbackHtml = '<div class="feedback-buttons" data-chat-id="' + chatId + '">' +
+							'<button class="feedback-btn thumbs-up" title="Helpful"><i class="fas fa-thumbs-up"></i></button>' +
+							'<button class="feedback-btn thumbs-down" title="Not Helpful"><i class="fas fa-thumbs-down"></i></button>' +
+							'</div>';
+						
+						var botHtml = '<div class="d-flex justify-content-start mb-4">' +
+							'<div class="img_cont_msg"><img src="https://cdn-icons-png.flaticon.com/512/387/387569.png" class="rounded-circle user_img_msg"></div>' +
+							'<div class="msg_cotainer">' + botResponse + sourcesHtml + feedbackHtml + 
+							'<span class="msg_time">' + str_time + '</span></div></div>';
+						
 						$("#messageFormeight").append($.parseHTML(botHtml));
-						
-						// Scroll to bottom to show response
 						$("#messageFormeight").scrollTop($("#messageFormeight")[0].scrollHeight);
-					}).fail(function() {
-						// Remove typing indicator on error
-						$("#typingIndicator").remove();
 						
+					}).fail(function() {
+						$("#typingIndicator").remove();
 						var errorHtml = '<div class="d-flex justify-content-start mb-4"><div class="img_cont_msg"><img src="https://cdn-icons-png.flaticon.com/512/387/387569.png" class="rounded-circle user_img_msg"></div><div class="msg_cotainer">Sorry, something went wrong. Please try again.<span class="msg_time">' + str_time + '</span></div></div>';
 						$("#messageFormeight").append($.parseHTML(errorHtml));
-						
-						// Scroll to bottom
 						$("#messageFormeight").scrollTop($("#messageFormeight")[0].scrollHeight);
+					});
+				});
+
+				// Handle feedback buttons
+				$(document).on("click", ".thumbs-up", function() {
+					var chatId = $(this).closest(".feedback-buttons").data("chat-id");
+					var $container = $(this).closest(".feedback-buttons");
+					
+					$.ajax({
+						url: "/feedback",
+						type: "POST",
+						contentType: "application/json",
+						data: JSON.stringify({ chat_id: chatId, feedback: "up" })
+					}).done(function() {
+						$container.html('<span class="feedback-thanks"><i class="fas fa-check text-success"></i> Thanks!</span>');
+					});
+				});
+
+				$(document).on("click", ".thumbs-down", function() {
+					var chatId = $(this).closest(".feedback-buttons").data("chat-id");
+					var $container = $(this).closest(".feedback-buttons");
+					
+					$.ajax({
+						url: "/feedback",
+						type: "POST",
+						contentType: "application/json",
+						data: JSON.stringify({ chat_id: chatId, feedback: "down" })
+					}).done(function() {
+						$container.html('<span class="feedback-thanks"><i class="fas fa-check text-warning"></i> Noted</span>');
+					});
+				});
+
+				// Clear chat
+				$("#clearBtn").on("click", function() {
+					if (confirm("Clear all chat history?")) {
+						$.post("/clear").done(function() {
+							$("#messageFormeight").html('<div class="d-flex justify-content-start mb-4"><div class="img_cont_msg"><img src="https://cdn-icons-png.flaticon.com/512/387/387569.png" class="rounded-circle user_img_msg"></div><div class="msg_cotainer">Chat cleared. How can I help you today?<span class="msg_time">Now</span></div></div>');
+						});
+					}
+				});
+
+				// Export chat
+				$("#exportBtn").on("click", function() {
+					$.get("/export").done(function(data) {
+						var blob = new Blob([data.export], { type: "text/plain" });
+						var url = URL.createObjectURL(blob);
+						var a = document.createElement("a");
+						a.href = url;
+						a.download = "chat_export_" + new Date().toISOString().slice(0,10) + ".txt";
+						document.body.appendChild(a);
+						a.click();
+						document.body.removeChild(a);
+						URL.revokeObjectURL(url);
+					});
+				});
+
+				// View stats
+				$("#statsBtn").on("click", function() {
+					$.get("/stats").done(function(data) {
+						$("#totalChats").text(data.total_chats);
+						$("#positiveCount").text(data.positive_feedback);
+						$("#negativeCount").text(data.negative_feedback);
+						$("#statsModal").modal("show");
 					});
 				});
 			});

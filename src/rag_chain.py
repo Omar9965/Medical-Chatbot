@@ -2,14 +2,15 @@
 RAG Chain Module
 Handles RAG chain setup, retrieval, and document processing
 """
-import os
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_pinecone import PineconeVectorStore
-from pinecone import Pinecone
-
-from src.helper import download_embeddings
-from src.prompt import system_prompt
+from src.helper import (
+    download_embeddings,
+    get_vector_store,
+    get_retriever,
+    get_chat_model,
+    get_prompt_template,
+    get_question_answer_chain,
+    format_docs
+)
 from utils import get_settings
 
 
@@ -21,46 +22,30 @@ class RAGChain:
         self._setup_chain()
     
     def _setup_chain(self):
-        """Initialize all RAG components"""
+        """Initialize all RAG components using helper functions"""
         # Initialize embeddings
         self.embeddings_model = download_embeddings()
         
-        # Initialize Pinecone
-        pc = Pinecone(api_key=self.settings.PINECONE_API_KEY)
-        index_name = "medical-chatbot"
-        
-        # Connect to existing index
-        self.docsearch = PineconeVectorStore.from_existing_index(
-            index_name=index_name,
-            embedding=self.embeddings_model
+        # Connect to existing index and create retriever
+        self.docsearch = get_vector_store(
+            index_name="medical-chatbot",
+            embeddings=self.embeddings_model
         )
-        self.retriever = self.docsearch.as_retriever(
-            search_type="similarity", 
-            search_kwargs={"k": 3}
+        self.retriever = get_retriever(
+            vector_store=self.docsearch,
+            search_type="similarity",
+            k=3
         )
         
-        # Initialize chat model
-        self.chat_model = ChatGoogleGenerativeAI(
-            model="gemini-2.5-flash",
-            temperature=0,
-            google_api_key=self.settings.GEMINI_API_KEY
-        )
-        
-        # Create prompt template
-        self.prompt = ChatPromptTemplate.from_messages([
-            ("system", system_prompt),
-            ("human", "{input}"),
-        ])
+        # Initialize chat model and prompt
+        self.chat_model = get_chat_model()
+        self.prompt = get_prompt_template()
         
         # Create question-answer chain
-        self.question_answer_chain = self.prompt | self.chat_model
-    
-    @staticmethod
-    def format_docs(docs) -> str:
-        """Format retrieved documents into a single context string"""
-        return "\n\n".join([d.page_content for d in docs])
-    
-
+        self.question_answer_chain = get_question_answer_chain(
+            chat_model=self.chat_model,
+            prompt=self.prompt
+        )
     
     def retrieve(self, query: str):
         """Retrieve relevant documents for a query"""
@@ -75,7 +60,7 @@ class RAGChain:
         retrieved_docs = self.retrieve(query)
         
         # Format context and generate response
-        context = self.format_docs(retrieved_docs)
+        context = format_docs(retrieved_docs)
         response = self.question_answer_chain.invoke({
             "context": context, 
             "input": query

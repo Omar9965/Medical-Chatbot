@@ -60,18 +60,7 @@ class RAGChain:
         """Format retrieved documents into a single context string"""
         return "\n\n".join([d.page_content for d in docs])
     
-    @staticmethod
-    def get_sources(docs) -> list:
-        """Extract unique source filenames from documents"""
-        sources = []
-        for doc in docs:
-            source = doc.metadata.get("source", "Unknown")
-            # Extract just the filename from the path
-            if source and source != "Unknown":
-                source = os.path.basename(source)
-            if source not in sources:
-                sources.append(source)
-        return sources
+
     
     def retrieve(self, query: str):
         """Retrieve relevant documents for a query"""
@@ -80,11 +69,10 @@ class RAGChain:
     def generate_response(self, query: str) -> dict:
         """
         Generate a response for a query using RAG
-        Returns dict with 'content' and 'sources'
+        Returns dict with 'content'
         """
         # Retrieve documents
         retrieved_docs = self.retrieve(query)
-        sources = self.get_sources(retrieved_docs)
         
         # Format context and generate response
         context = self.format_docs(retrieved_docs)
@@ -95,7 +83,6 @@ class RAGChain:
         
         return {
             "content": response.content,
-            "sources": sources
         }
 
 

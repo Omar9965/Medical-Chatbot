@@ -32,19 +32,16 @@ def chat():
         chat_entry = chat_store.add_chat(
             question=msg,
             answer=result["content"],
-            sources=result["sources"]
         )
         
         return jsonify({
             "response": result["content"],
-            "sources": result["sources"],
             "chat_id": chat_entry["id"]
         })
     
     except Exception as e:
         return jsonify({
             "response": f"Error: {str(e)}", 
-            "sources": [], 
             "chat_id": -1
         })
 

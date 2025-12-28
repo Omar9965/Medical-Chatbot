@@ -12,14 +12,13 @@ class ChatStore:
         self.chat_history = []
         self.feedback_store = []
     
-    def add_chat(self, question: str, answer: str, sources: list) -> dict:
+    def add_chat(self, question: str, answer: str) -> dict:
         """Add a new chat entry and return it"""
         chat_entry = {
             "id": len(self.chat_history),
             "timestamp": datetime.now().isoformat(),
             "question": question,
             "answer": answer,
-            "sources": sources
         }
         self.chat_history.append(chat_entry)
         return chat_entry

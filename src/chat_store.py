@@ -3,7 +3,6 @@ Chat Store Module
 Handles chat history and feedback storage management
 """
 from datetime import datetime
-import os
 
 
 class ChatStore:
@@ -47,7 +46,6 @@ class ChatStore:
             "timestamp": datetime.now().isoformat()
         }
         
-        # Add question/answer context if available
         chat = self.get_chat(chat_id)
         if chat:
             feedback_entry["question"] = chat["question"]
